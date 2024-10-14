@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مواقيت الصلاة</title>
+    <style>
+        body {
+            background: linear-gradient(45deg, rgb(133, 71, 220), rgb(0, 0, 0));
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .prayer-times {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            width: 100%;
+        }
+        .prayer {
+            background: white;
+            color: black;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+            width: 120px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .prayer:hover {
+            transform: translateY(-10px);
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.5);
+        }
+        .prayer h3 {
+            background: #9c6aec;
+            color: white;
+            margin: -20px -20px 10px -20px;
+            padding: 10px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            font-size: 1.2rem;
+        }
+        select {
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            border: none;
+            background-color: #fff;
+            color: black;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+            transition: box-shadow 0.3s ease;
+        }
+        select:focus {
+            outline: none;
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="city-name">مواقيت الصلاة</h1>
+        <select id="city-select">
+            <option value="Cairo">القاهرة</option>
+            <option value="Alexandria">الإسكندرية</option>
+            <option value="Giza">الجيزة</option>
+            <option value="Shubra El-Kheima">المنوفية</option>
+            <option value="Port Said">بورسعيد</option>
+            <option value="Suez">السويس</option>
+            <option value="Mansoura">المنصورة</option>
+            <option value="Tanta">طنطا</option>
+            <option value="Asyut">أسيوط</option>
+        </select>
+        
+        <div class="prayer-times" id="prayer-times">
+            <!-- Prayer times will be inserted here -->
+        </div>
+    </div>
+
+    <script>
+        function fetchPrayerTimes(city) {
+            const API_URL = `http://api.aladhan.com/v1/timingsByCity?city=${city}&country=Egypt&method=2`;
+            fetch(API_URL)
+                .then(response => response.json())
+                .then(data => {
+                    const timings = data.data.timings;
+                    const prayerTimesContainer = document.getElementById('prayer-times');
+                    prayerTimesContainer.innerHTML = '';
+
+                    const prayers = [
+                        { name: 'الفجر', time: timings.Fajr },
+                        { name: 'الظهر', time: timings.Dhuhr },
+                        { name: 'العصر', time: timings.Asr },
+                        { name: 'المغرب', time: timings.Maghrib },
+                        { name: 'العشاء', time: timings.Isha }
+                    ];
+
+                    prayers.forEach(prayer => {
+                        const prayerElement = document.createElement('div');
+                        prayerElement.classList.add('prayer');
+                        
+                        prayerElement.innerHTML = `
+                            <h3>${prayer.name}</h3>
+                            <p>${prayer.time}</p>
+                        `;
+                        
+                        prayerTimesContainer.appendChild(prayerElement);
+                    });
+
+                    const date = new Date(data.data.date.gregorian.date);
+                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                    document.getElementById('date').innerText = date.toLocaleDateString('ar-EG', options);
+                })
+                .catch(error => console.error('Error fetching prayer times:', error));
+        }
+
+        document.getElementById('city-select').addEventListener('change', function() {
+            const city = this.value;
+            fetchPrayerTimes(city);
+        });
+
+        // Initial load
+        fetchPrayerTimes('Cairo');
+    </script>
+</body>
+</html>
